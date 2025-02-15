@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Homework</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="#" id="backButton" onclick="history.back();">Back</a>
+
+    <div class="container">
+        <h2>Submit Homework</h2>
+        <form id="homeworkForm">
+            <input type="text" id="homeworkDescription" placeholder="Homework description" required>
+            <input type="file" id="homeworkFile" required>
+            <button type="submit">Submit Homework</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskIndex = urlParams.get('task');
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+        document.getElementById('homeworkForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const description = document.getElementById('homeworkDescription').value.trim();
+            const fileInput = document.getElementById('homeworkFile');
+            const file = fileInput.files[0];
+
+            if (!description || !file) {
+                alert('Please provide both description and file.');
+                return;
+            }
+
+            const submissionTimestamp = new Date().toISOString();
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                const fileData = reader.result;
+
+                let submittedHomework = JSON.parse(localStorage.getItem('submittedHomework')) || {};
+
+                if (!submittedHomework[currentUser.email]) {
+                    submittedHomework[currentUser.email] = {};
+                }
+
+                const taskKey = taskIndex.toString();
+                submittedHomework[currentUser.email][taskKey] = {
+                    description,
+                    fileName: file.name,
+                    fileData: fileData,
+                    status: 'submitted',
+                    submissionTime: submissionTimestamp
+                };
+
+                localStorage.setItem('submittedHomework', JSON.stringify(submittedHomework));
+
+                alert('Homework submitted successfully!');
+                window.location.href = 'tasks.html';
+            };
+
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
